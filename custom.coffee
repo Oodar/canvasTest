@@ -5,6 +5,8 @@ yPos = 0
 accum = 0
 addParticles = true
 
+overlay = false
+
 class renderer
 	constructor: (@ctx,@canvas,@targetFrameRate) ->
 		@accum = 0
@@ -69,6 +71,15 @@ $(document).ready( ->
 			addParticles = false
 		else
 			addParticles = true
+	)
+
+	$('#slide').click( (e) ->
+		if not overlay
+			$('#overlayWrapper').animate({"left": "150"},"slow")
+			overlay = true
+		else
+			$('#overlayWrapper').animate({"left": "-200"},"slow")
+			overlay = false
 	)
 
 	
@@ -138,4 +149,4 @@ update = (sceneObjects, sceneRenderer, lastFrameTime) ->
 	
 
 	#update at ~60fps
-	setTimeout update, 1000/60, sceneObjects, sceneRenderer, Date.now()/1000
+	setTimeout update, 1000/120, sceneObjects, sceneRenderer, Date.now()/1000
