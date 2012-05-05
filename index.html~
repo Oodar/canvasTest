@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+ 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+ 	<title>Canvas Mockup</title>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js" charset="utf-8"></script>
+ 	<script type="text/javascript" src="custom.js" charset="utf-8"></script>
+ </head>
+ <body style="background: #FFF">
+	 <button id="off">stop</button>
+	 <canvas id="canvas" height="400" width="800"></canvas>
+ </body>
+</html>

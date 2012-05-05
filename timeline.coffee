@@ -1,0 +1,43 @@
+class timeline
+	constructor: (
+		@hourFrom
+		@hourTo
+		@interval
+		@pixelsPerInterval
+		@xOffset=0
+		@yOffset=150
+	) 
+	->
+	  # required size of the canvas in pixels
+    @width = (((@hourTo - @hourFrom) * 60) / @interval) * @pixelsPerInterval
+		@intervalWidth = 2
+		@intervalHeight = 5
+	
+	#helper to draw time intervals
+	drawInterval: (ctx, xPos) ->
+		console.log "drawing interval @ #{xPos}"
+		ctx.fillRect xPos, @yOffset, @intervalWidth, @intervalHeight
+
+		# create time string <hour>:<minutes>
+		timeString = @hourFrom # this will need to be reset
+
+		# calculate minutes
+		minutes = ((xPos - @xOffset) / @pixelsPerInterval) * @interval
+		minutes %= 60
+		# append 0 if we've landed on an hour
+		if minutes == 0
+			timeString += ':' + minutes + '0'
+		else
+			timeString += ':' + minutes
+
+		if ((minutes + @interval) % 60) is 0
+			@hourFrom+=1
+
+		# draw text
+		ctx.save()
+		ctx.translate(xPos-4,@yOffset+10) # literals, yuck
+		ctx.rotate( Math.PI / 3 )
+		ctx.fillText timeString, 0, 0
+		ctx.restore()
+
+	render: (ctx) ->

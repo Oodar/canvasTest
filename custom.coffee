@@ -1,0 +1,141 @@
+elapsedTime = 0
+xPos = 0
+yPos = 0
+
+accum = 0
+addParticles = true
+
+class renderer
+	constructor: (@ctx,@canvas,@targetFrameRate) ->
+		@accum = 0
+	do: (objects, lastFrameTime) =>
+		dT = (Date.now()/1000) - lastFrameTime
+		@accum += dT
+		@frameTime = dT
+
+		# call render on each object if we're due to render
+		if @accum > 1/@targetFrameRate
+			@ctx.clearRect 0,0,canvas.width,canvas.height
+			obj.render(@ctx) for obj in objects
+			@accum = 0
+
+	frameRate: ->
+		1 / @frameTime
+
+class renderable
+	constructor: (@name) ->
+	render: (ctx) ->
+		console.log "renderable::render()"
+
+class vec2d
+	constructor: (@x,@y) ->
+	add: (x,y) ->
+		@x += x
+		@y += y
+	mul: (s) ->
+		@x *= s
+		@y *= s
+
+class rgbaColor
+	constructor: (@r,@g,@b,@a) ->
+	toString: ->
+		"rgba(#{@r},#{@g},#{@b},#{@a})"
+
+class particle extends renderable
+	constructor: (@pos,@velocity,@radius,@color) ->
+		super(@name)
+	update: (dT) ->
+		@pos.x += @velocity.x * dT * 500
+		@pos.y += @velocity.y * dT * 500
+		@color.a -= 1 * dT
+	render: (ctx) ->
+		ctx.beginPath()
+		ctx.arc @pos.x, @pos.y, 15, 0, 2 * Math.PI, false
+		ctx.fillStyle = @color.toString()
+		ctx.fill()
+		#ctx.fillRect @pos.x, @pos.y, 5, 5
+
+$(document).ready( ->
+	canvas = $('#canvas')[0]
+
+	if canvas.getContext
+		console.log 'got 2d context'
+		ctx = canvas.getContext '2d'
+	else
+		console.log 'unable to get 2d context'
+
+	$('#off').click( (e) ->
+		if addParticles
+			addParticles = false
+		else
+			addParticles = true
+	)
+
+	
+	# create new renderer
+	r = new renderer(ctx,canvas,60)
+	now = Date.now() / 1000
+
+	objs = []
+
+	objs.push(
+		new particle(
+			new vec2d(canvas.width/2,canvas.height/2)
+			new vec2d(Math.sin((Math.random()*2)-1),Math.sin((Math.random()*2)-1))
+			10
+			new rgbaColor(
+				parseInt(128 + (128 * Math.sin(Math.random())))
+				parseInt(128 + (128 * Math.cos(Math.random()*.5)))
+				parseInt(128 + (128 * Math.sin(Math.random()*.25)))
+				1
+			)
+		)
+	) for i in [1..10]
+
+	# kick off update loop
+	update(objs,r,now)
+
+)
+
+
+
+update = (sceneObjects, sceneRenderer, lastFrameTime) ->
+
+	dT = Date.now()/1000 - lastFrameTime
+	accum += lastFrameTime
+
+	if addParticles
+		sceneObjects.push(
+			new particle(
+				new vec2d(sceneRenderer.canvas.width/2, sceneRenderer.canvas.height/2)
+				new vec2d(Math.sin((Math.random()*2)-1),Math.sin((Math.random()*2)-1))
+				10
+				new rgbaColor(
+					parseInt(128 + (128 * Math.sin(accum)))
+					parseInt(128 + (128 * Math.cos(accum * .5)))
+					parseInt(128 + (128 * Math.sin(accum * .25)))
+					1
+				)
+			)
+		)
+
+	i.update(dT) for i in sceneObjects
+
+	width = sceneRenderer.canvas.width
+	height = sceneRenderer.canvas.height
+
+	sceneObjects = (i for i in sceneObjects when 0 < i.pos.x < width and 0 < i.pos.y < height)
+
+	sceneRenderer.do(sceneObjects,lastFrameTime)
+
+	sceneRenderer.ctx.save()
+	sceneRenderer.ctx.translate(10,20)
+	sceneRenderer.ctx.fillStyle="#000"
+	sceneRenderer.ctx.fillText("particles: #{sceneObjects.length}",0,0)
+	sceneRenderer.ctx.translate(0,20)
+	sceneRenderer.ctx.fillText("frame time: #{dT}",0,0)
+	sceneRenderer.ctx.restore()
+	
+
+	#update at ~60fps
+	setTimeout update, 1000/60, sceneObjects, sceneRenderer, Date.now()/1000
